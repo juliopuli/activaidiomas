@@ -1,44 +1,83 @@
 // Navbar Scroll Effect
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
+    if (navbar) {
+        if (window.scrollY > 100) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
     }
 });
 
-// Mobile Menu Toggle (Basic support)
+// Mobile Menu Toggle
 const menuToggle = document.getElementById('mobile-menu');
 const navMenu = document.querySelector('.nav-menu');
 
-if (menuToggle) {
+if (menuToggle && navMenu) {
     menuToggle.addEventListener('click', () => {
         navMenu.classList.toggle('active');
-        // Add CSS for active menu if needed
+        menuToggle.classList.toggle('is-active');
     });
 }
 
+// Close mobile menu when clicking a link
+document.querySelectorAll('.nav-links').forEach(link => {
+    link.addEventListener('click', () => {
+        if (navMenu) navMenu.classList.remove('active');
+        if (menuToggle) menuToggle.classList.remove('is-active');
+    });
+});
+
+// Smooth Scroll for Navigation Links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// FAQ Accordion
+document.querySelectorAll('.faq-question').forEach(q => {
+    q.addEventListener('click', () => {
+        const item = q.parentElement;
+        item.classList.toggle('active');
+
+        // Close others
+        document.querySelectorAll('.faq-item').forEach(other => {
+            if (other !== item) other.classList.remove('active');
+        });
+    });
+});
+
 // Intersection Observer for Animations
 const observerOptions = {
-    threshold: 0.1
+    threshold: 0.15,
+    rootMargin: '0px 0px -50px 0px'
 };
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.classList.add('animate-up');
+            entry.target.classList.add('in-view');
+            // We keep monitoring for future entries if we want re-animations, 
+            // but for a premium feel, once-in is usually cleaner.
             observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
-document.querySelectorAll('.service-card, .exams-text, .exams-image, .info-item, .contact-form-container').forEach(el => {
-    el.style.opacity = '0'; // Initial state for JS-based animations
+document.querySelectorAll('.animate-up').forEach(el => {
     observer.observe(el);
 });
 
-// Form Handling
+// Powerful Form Handling
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('formStatus');
 
@@ -46,21 +85,24 @@ if (contactForm) {
     contactForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Disable button
         const submitBtn = contactForm.querySelector('button');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'Enviando...';
+        const originalText = submitBtn.innerHTML;
 
-        // Simulate API call
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loader"></span> Enviando...';
+
+        // Simulate a professional submission process
         setTimeout(() => {
             contactForm.reset();
-            formStatus.textContent = '¡Gracias! Hemos recibido tu solicitud. Te contactaremos muy pronto.';
+            formStatus.innerHTML = '<div class="success-msg"><h4>¡Solicitud Recibida!</h4><p>En menos de 24h un asesor se pondrá en contacto contigo.</p></div>';
             formStatus.className = 'form-status success';
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Enviar Solicitud';
+            formStatus.style.display = 'block';
 
-            // Scroll to status
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+            // Optional: Smooth scroll to success message
             formStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 1500);
+        }, 2000);
     });
 }
